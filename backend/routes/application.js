@@ -15,9 +15,9 @@ const router = express.Router();
 async function createJobApplication(applicationData) {
   try {
     const result = await pool.query(
-      `INSERT INTO applications (job_id, user_id, cover_letter, 
+      `INSERT INTO applications (job_id, applicant_id, cover_letter, 
        cv_filename, cv_original_name, cv_file_size, cv_upload_date, 
-       status, created_at) 
+       status, applied_at) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
       [
         applicationData.job_id,
@@ -45,7 +45,7 @@ async function getJobApplicationById(applicationId, userId) {
       `SELECT a.*, j.title, j.company, j.location 
        FROM applications a 
        JOIN jobs j ON a.job_id = j.id 
-       WHERE a.id = $1 AND a.user_id = $2`,
+       WHERE a.id = $1 AND a.applicant_id = $2`,
       [applicationId, userId]
     );
     return result.rows[0];
@@ -62,7 +62,7 @@ async function getUserApplications(userId) {
       `SELECT a.*, j.title, j.company, j.location, j.salary_range
        FROM applications a 
        JOIN jobs j ON a.job_id = j.id 
-       WHERE a.user_id = $1 
+       WHERE a.applicant_id = $1 
        ORDER BY a.created_at DESC`,
       [userId]
     );
@@ -77,7 +77,7 @@ async function getUserApplications(userId) {
 async function checkExistingApplication(userId, jobId) {
   try {
     const result = await pool.query(
-      `SELECT id FROM applications WHERE user_id = $1 AND job_id = $2`,
+      `SELECT id FROM applications WHERE applicant_id = $1 AND job_id = $2`,
       [userId, jobId]
     );
     return result.rows.length > 0;
@@ -116,7 +116,7 @@ router.post(
 
     try {
       const { job_id, cover_letter } = req.body;
-      const user_id = req.userId; // From auth middleware
+      const user_id = req.user.id; // From auth middleware
       const fileInfo = req.fileInfo; // From upload middleware
 
       // ===== VALIDATION =====

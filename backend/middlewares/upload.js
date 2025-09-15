@@ -30,8 +30,8 @@ const createStorage = () => {
     filename: (req, file, cb) => {
       try {
         // Create unique filename: userId_jobId_timestamp_originalname
-        const userId = req.userId || "unknown";
-        const jobId = req.body.jobId || "unknown";
+        const userId = req.user.id || "unknown";
+        const jobId = req.body.job_id || "unknown";
         const timestamp = Date.now();
         const ext = path.extname(file.originalname);
         const nameWithoutExt = path.basename(file.originalname, ext);
