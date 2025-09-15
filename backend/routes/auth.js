@@ -11,6 +11,8 @@ const {
 } = require("../utils/auth");
 
 const { sendVerificationEmail, sendWelcomeEmail } = require("../emailservice");
+const { requireEmailVerified } = require("../middlewares/auth");
+
 const router = express.Router();
 
 router.post("/register", async (req, res) => {
@@ -143,13 +145,18 @@ router.post("/login", async (req, res) => {
     // ===== FIND USER =====
 
     const findUserQuery = `
-            SELECT id, name, email, password_hash, created_at 
+            SELECT id, full_name, email,email_verified,password_hash, created_at 
             FROM users 
             WHERE email = $1
         `;
 
     const result = await pool.query(findUserQuery, [email.toLowerCase()]);
-
+    if (result.rows[0] && !result.rows[0].email_verified) {
+      return res.status(401).json({
+        success: false,
+        message: "Please verify your email before logging in",
+      });
+    }
     if (result.rows.length === 0) {
       return res.status(401).json({
         success: false,

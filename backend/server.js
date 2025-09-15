@@ -4,15 +4,12 @@ const PORT = 5000;
 const pool = require("./db");
 
 const authRoutes = require("./routes/auth");
+const applicationRoutes = require("./routes/application");
+
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/applications", applicationRoutes);
 
-app.get("/api/test", (req, res) => {
-  res.json({
-    message: "Server is working!",
-    timestamp: new Date().toISOString(),
-  });
-});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
@@ -71,26 +68,6 @@ async function createJob(jobData) {
     return result.rows[0];
   } catch (error) {
     console.error("Error creating job:", error);
-    throw error;
-  }
-}
-async function createJobApplication(applicationData) {
-  try {
-    const result = await pool.query(
-      `INSERT INTO job_applications (job_id, applicant_id, 
-      cover_letter, status, applied_at) 
-      VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [
-        applicationData.job_id,
-        applicationData.applicant_id,
-        applicationData.cover_letter,
-        applicationData.status,
-        applicationData.applied_at,
-      ]
-    );
-    return result.rows[0];
-  } catch (error) {
-    console.error("Error creating job application:", error);
     throw error;
   }
 }
