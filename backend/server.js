@@ -2,9 +2,18 @@ const express = require("express");
 const app = express();
 const PORT = 5000;
 const pool = require("./db");
+const cors = require("cors");
 
 const authRoutes = require("./routes/auth");
 const applicationRoutes = require("./routes/application");
+const { authenticateToken } = require("./middlewares/auth");
+
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Your React app's URL
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use("/api/auth", authRoutes);
@@ -22,6 +31,7 @@ app.get("/api/users", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch users" });
   }
 });
+
 app.get("/api/jobs", async (req, res) => {
   try {
     const jobs = await getJobs();
@@ -72,18 +82,17 @@ async function createJob(jobData) {
   }
 }
 
-app.post("/api/createjob", async (req, res) => {
+app.post("/api/createjob", authenticateToken, async (req, res) => {
   console.log("Creating job:", req.body);
   try {
-    const { title, description, company, location, salary_range, posted_by } =
-      req.body;
+    const { title, description, company, location, salary_range } = req.body;
     const newJob = await createJob({
       title,
       description,
       company,
       location,
       salary_range,
-      posted_by,
+      posted_by: req.user.id,
     });
     res.status(201).json(newJob);
   } catch (error) {

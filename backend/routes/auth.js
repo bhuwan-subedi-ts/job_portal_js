@@ -43,7 +43,7 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    if (user_type !== "admin" && user_type !== "job_seeker") {
+    if (user_type !== "admin" && user_type !== "jobseeker") {
       return res.status(400).json({
         success: false,
         message: "Invalid user type",
